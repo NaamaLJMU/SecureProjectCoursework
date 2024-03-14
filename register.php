@@ -3,23 +3,81 @@ include('config.php');
 include('functions.php');
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+// set timeout period in seconds 
+$inactive = 1200; // 20 minutes
 
-
-    $full_name = $_GET['full_name'];  
-    $username = $_GET['username']);
-    $email = $_GET["email"]);
-    $password = $_GET['password']);
-    // Handle file upload for profile image
-    $image_path = handleFileUpload();
-
-    if (registerUser($full_name, $username, $password, $email, $image_path)) {
-        header('Location: login.php');
-        exit();
-    } else {
-        $error = "Username already exists. Please choose a different one.";
-    } 
+// check to see if $_SESSION['timeout'] is set
+if(isset($_SESSION['timeout']) ) {
+	$session_life = time() - $_SESSION['timeout'];
+	if($session_life > $inactive)
+        { session_destroy(); header("Location: logout.php"); }
 }
+$_SESSION['timeout'] = time();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $check=true;
+    $msg="";
+
+    // Sanitize and validate name
+    $full_name = validateInput($_POST['full_name']);  
+    if (!preg_match("/^[a-zA-Z ]*$/",$full_name)) {
+        $msg = "Only letters and white space allowed";
+        $check=false;
+    }
+
+     // Sanitize and validate username
+    $username = validateInput($_POST['username']);
+    if (!ctype_alnum($username)) {
+        $msg="Invalid username: A username contains only letters (both uppercase and lowercase) and digits (0-9).";
+        $check=false;
+    }
+
+    if(checkUserNameExist($username)){
+        $msg="Username already exists. Please choose a different one.";       
+        $check=false;
+    }
+    
+    //Sanitize and validate Given email
+    $email = validateInput($_POST["email"]);
+    // check if e-mail address is well-formed
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {  
+        $msg="Invalid email format, please try again.";       
+        $check=false;
+    }
+
+    if(checkEmailExist($email)){
+        $msg="Email already exists. Please choose a different one.";       
+        $check=false;
+    }
+     
+    // Sanitize and validate Given password
+    $password = validateInput($_POST['password']);
+    // Validate password strength
+    $uppercase = preg_match('@[A-Z]@', $password);
+    $lowercase = preg_match('@[a-z]@', $password);
+    $number    = preg_match('@[0-9]@', $password);
+    $specialChars = preg_match('@[^\w]@', $password);
+
+    if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
+        $msg="Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";       
+        $check=false;
+    }
+
+
+    if($check !== false){
+        // Handle file upload for profile image
+        $image_path = handleFileUpload();
+
+        if (registerUser($full_name, $username, $password, $email, $image_path)) {
+            header('Location: login.php');
+            exit();
+        } else {
+            $error = "Username already exists. Please choose a different one.";
+        } 
+    }else{
+        $error = $msg;
+    }
 
 function handleFileUpload() {
     $targetDir = "uploads/";  // Create a folder named "uploads" to store user images
