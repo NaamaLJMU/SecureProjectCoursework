@@ -2,22 +2,51 @@
 include('config.php');
 include('functions.php');
 
-session_start();
-
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
+// 20 mins in seconds
+$inactive = 1200; 
+// Check Session timeout is set or not
+if(isset($_SESSION['timeout']) ) {
+    $session_life = time() - $_session['timeout'];
+
+    if($session_life > $inactive)
+    {  
+        session_destroy(); 
+        header("Location: logout.php");     
+    }
+}
+
+$_session['timeout']=time();
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-    $user_id = $_SESSION['user_id'];
-    $image_path = handleFileUpload();
-    addBlog($title, $content, $user_id, $image_path);
-    header('Location: index.php'); // Redirect to the main page after adding the blog
-    exit();
+    $check=true;
+    $msg="";
+
+    // Sanitize and validate title
+    $title = validateInput($_POST['title']);  
+    if (!preg_match("/^[a-zA-Z ]*$/",$title)) {
+        $msg = "Only letters and white space allowed";
+        $check=false;
+    }
+    // Sanitize Blog content
+    $content = validateInput($_POST['content']);
+
+    if( $check !== false){
+        $user_id = $_SESSION['user_id'];
+        $image_path = handleFileUpload();
+    
+    
+        addBlog($title, $content, $user_id, $image_path);
+        header('Location: index.php'); // Redirect to the main page after adding the blog
+        exit();
+    }else{
+        $error = $msg;
+    }
 }
 
 function handleFileUpload() {
