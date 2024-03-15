@@ -115,6 +115,7 @@ function registerUser($full_name, $username, $password, $email, $image_path) {
 
 
 function checkUserNameExist($username){
+	global $conn;
    // Check if the username already exists
    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? ");
    $stmt->bind_param("s", $username);
@@ -130,6 +131,7 @@ function checkUserNameExist($username){
 }
 
 function checkEmailExist($email){
+	global $conn;
     // Check if the email already exists
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
