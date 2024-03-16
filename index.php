@@ -2,6 +2,8 @@
 include('config.php');
 include('functions.php');
 
+session_start();  // Start or resume the session
+
 // Initialize variables
 $welcomeMessage = getWelcomeMessage();
 $loginLogoutButton = "";
