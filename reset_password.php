@@ -5,19 +5,34 @@ include('functions.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle the form submission for password reset
     $email = $_POST['email'];
-    
-    // Generate a random verification code
-    $verificationCode = generateVerificationCode();
+    // check if e-mail address is well-formed
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {  
+        $error="Invalid email, please try again.";       
+    }else{
+        if(checkEmailExist($email)){
+            // IF EMAIL EXIST
+            // Generate a random verification code
+            $verificationCode = generateVerificationCode();
 
-    // Store the verification code in the database
-    storeVerificationCode($email, $verificationCode);
+            //Check last 10 minutes entry for the verification code in the database
+            //User able to send verification code in each 10 minutes only
+            if(lastSendVerification($email)){
+                // Store the verification code in the database
+                storeVerificationCode($email, $verificationCode);
 
-    // Send the verification code to the user's email
-    sendVerificationEmail($email, $verificationCode);
+                // Send the verification code to the user's email
+                sendVerificationEmail($email, $verificationCode);
 
-    // Redirect to a page for code verification
-    header('Location: verify_code.php?email=' . urlencode($email));
-    exit();
+                // Redirect to a page for code verification
+                header('Location: verify_code.php?email=' . urlencode($email));
+                exit();
+            }else{
+                $error="The verification code has already been sent. Please try again 10 minutes after the last request.";    
+            }
+        }else{
+            $error="Given email is not registered in the system, please register as new user.";       
+        }
+    }
 }
 ?>
 

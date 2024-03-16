@@ -2,8 +2,6 @@
 include('config.php');
 include('functions.php');
 
- session_start();
-
 if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
     exit();
@@ -11,13 +9,39 @@ if (isset($_SESSION['user_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-   $username = $_POST['username'];
-   $password = $_POST['password'];
-   if (loginUser($username, $password)) {
-        header('Location: index.php');
-        exit();
-    } else {
-        $error = "Invalid username or password";
+    $check=true;
+    $msg="";
+    //Sanitize and validate username
+    $username = validateInput($_POST['username']);
+    if (!ctype_alnum($username)) {
+        $msg="Invalid username: A username contains only letters (both uppercase and lowercase) and digits (0-9).";
+        $check=false;
+    }
+    
+   // Sanitize and validate Given password
+   $password = validateInput($_POST['password']);
+   // Validate password strength
+   $uppercase = preg_match('@[A-Z]@', $password);
+   $lowercase = preg_match('@[a-z]@', $password);
+   $number    = preg_match('@[0-9]@', $password);
+   $specialChars = preg_match('@[^\w]@', $password);
+
+   if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
+       $msg="Invalid Password: A Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";       
+       $check=false;
+   }
+
+
+   if($check !== false){
+
+        if (loginUser($username, $password)) {
+            header('Location: index.php');
+            exit();
+        } else {
+            $error = "Invalid username or password";
+        }
+    }else{
+        $error = $msg;  
     }
 }
 ?>
