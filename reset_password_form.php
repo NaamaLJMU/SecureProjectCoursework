@@ -6,11 +6,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Handle the form submission for password reset
     $email = $_POST['email'];
-    $newPassword = validateInput($_POST['new_password']);
+    $newPassword = $_POST['new_password'];
 
     // Validate password strength
-    if(strlen($newPassword) < 8) {
-        $error="Password should be at least 8 characters in length.";       
+    $uppercase = preg_match('@[A-Z]@', $newPassword);
+    $lowercase = preg_match('@[a-z]@', $newPassword);
+    $number    = preg_match('@[0-9]@', $newPassword);
+    $specialChars = preg_match('@[^\w]@', $newPassword);
+
+    if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($newPassword) < 8) {
+        $error="Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";       
     }else{
         // Reset the password in the database
         resetPassword($email, $newPassword);
