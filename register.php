@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check=false;
     }
 
-    if(checkUserNameExist($email)){
+    if(checkUserNameExist($username)){
         $msg="Username already exists. Please choose a different one.";       
         $check=false;
     }
