@@ -3,16 +3,6 @@ include('config.php');
 include('functions.php');
 
 
-// set timeout period in seconds 
-$inactive = 1200; // 20 minutes
-
-// check to see if $_SESSION['timeout'] is set
-if(isset($_SESSION['timeout']) ) {
-	$session_life = time() - $_SESSION['timeout'];
-	if($session_life > $inactive)
-        { session_destroy(); header("Location: logout.php"); }
-}
-$_SESSION['timeout'] = time();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -33,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check=false;
     }
 
-    if(checkUserNameExist($username)){
+    if(checkUserNameExist($email)){
         $msg="Username already exists. Please choose a different one.";       
         $check=false;
     }
@@ -78,39 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }else{
         $error = $msg;
     }
-
-function handleFileUpload() {
-    $targetDir = "uploads/";  // Create a folder named "uploads" to store user images
-    $targetFile = $targetDir . basename($_FILES["image"]["name"]);
-    $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-
-    // Check if image file is a actual image or fake image
-    if (isset($_POST["submit"])) {
-        $check = getimagesize($_FILES["image"]["tmp_name"]);
-        if ($check !== false) {
-            $uploadOk = 1;
-        } else {
-            $error = "File is not an image.";
-            $uploadOk = 0;
-        }
-    }
-
-
-    // Check if $uploadOk is set to 0 by an error
-    if ($uploadOk == 0) {
-        $error = "Sorry, your file was not uploaded.";
-    } else {
-        // If everything is ok, try to upload file
-        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-            return $targetFile;
-        } else {
-            $error = "Sorry, there was an error uploading your file.";
-        }
-    }
-
-    return 'uploads/default.png'; // Return default image path if there's an error
+    
+    
 }
+
 
 
 ?>
@@ -198,7 +159,7 @@ function handleFileUpload() {
 <nav>
         <a href="index.php">Home</a>
     </nav>
-    <form action="register.php" method="get" enctype="multipart/form-data">
+    <form action="register.php" method="post" enctype="multipart/form-data">
         <h1>Register</h1>
         <?php if (isset($error)) : ?>
             <p><?php echo $error; ?></p>
